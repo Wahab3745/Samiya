@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be Mine? 💕</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <style>
+        /* Heart-shaped decorative background that fits all text lines */
+        .proposal-heart-card {
+            -webkit-mask: none !important;
+            mask: none !important;
+            background: linear-gradient(135deg, rgba(255,107,157,0.06), rgba(192,132,252,0.05));
+            border-radius: 28px;
+            padding: 40px 28px;
+            position: relative;
+            overflow: visible;
+            box-shadow: var(--shadow-soft), var(--shadow-glow);
+        }
+
+        .proposal-heart-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ff6b9d'/%3E%3Cstop offset='1' stop-color='%23c084fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M256 472s-12-10-26-22C120 352 48 288 48 192 48 120 104 64 176 64c38 0 74 18 96 46 22-28 58-46 96-46 72 0 128 56 128 128 0 96-72 160-182 258-14 12-26 22-26 22z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 120% auto;
+            filter: blur(14px) saturate(120%);
+            opacity: 0.75;
+            transform: translateZ(0) scale(1.02);
+        }
+
+        .proposal-card-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 460px;
+            padding: 16px 12px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .proposal-card-content .main-title {
+            margin-bottom: 8px;
+            font-size: 1.6rem;
+            line-height: 1.1;
+        }
+        .proposal-card-content .subtitle,
+        .proposal-card-content .message-text p {
+            color: rgba(255,255,255,0.92);
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+        .proposal-card-content .question {
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        /* Fullscreen fireworks canvas styling */
+        #fireworksCanvas {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 9999; /* sit above content visually but won't block clicks */
+            pointer-events: none;
+        }
+        /* Success overlay sits above content and gently dims the background */
+        #successSection {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            display: grid;
+            place-items: center;
+            pointer-events: auto; /* allow interaction with the overlay/card */
+            background: rgba(0,0,0,0.48); /* semi-transparent dim */
+            backdrop-filter: blur(4px) saturate(110%);
+            transition: opacity 360ms ease, visibility 360ms ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #successSection.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #successSection .success-card { pointer-events: auto; }
+        /* Romantic styling for the success card */
+        .success-card {
+            background: linear-gradient(135deg, rgba(255,107,157,0.12), rgba(192,132,252,0.08));
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+            max-width: 560px;
+            padding: 56px 48px;
+            border-radius: 28px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 40px rgba(255,107,157,0.12);
+            text-align: center;
+        }
+        .success-card .success-heart {
+            font-size: 48px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 6px 18px rgba(255,107,157,0.35));
+        }
+        .success-card h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            margin: 8px 0 12px 0;
+            color: #fff;
+            letter-spacing: 0.6px;
+            text-shadow: 0 6px 20px rgba(0,0,0,0.45);
+        }
+        .success-card p {
+            color: rgba(255,255,255,0.94);
+            font-size: 1rem;
+            line-height: 1.45;
+            margin: 6px 0;
+        }
+        .success-card .romantic-text {
+            font-weight: 600;
+            margin-top: 8px;
+            color: rgba(255, 238, 246, 0.95);
+        }
+        /* Use the inline CSS variable --img for the photo frames */
+        .photo-frame {
+            /* image on top, then light radial gloss, then color gradient */
+            background-image: var(--img), radial-gradient(120px 120px at 30% 30%, rgba(255,255,255,0.20), transparent 60%), linear-gradient(135deg, rgba(255,107,157,0.28), rgba(192,132,252,0.22));
+            background-size: cover, 120px 120px, auto;
+            background-position: center, 30% 30%, center;
+            background-repeat: no-repeat, no-repeat, no-repeat;
+        }
+
+        /* Circular photo-frame variant (romantic) */
+        .photo-frame.circle {
+            width: clamp(110px, 20vw, 160px);
+            height: clamp(110px, 20vw, 160px);
+            border-radius: 50%;
+            overflow: hidden;
+            display: inline-block;
+            position: relative;
+            border: 6px solid rgba(255,255,255,0.10);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.28), 0 0 28px rgba(255,107,157,0.07);
+            background-image: var(--img), radial-gradient(80px 80px at 30% 30%, rgba(255,255,255,0.14), transparent 60%), linear-gradient(135deg, rgba(255,107,157,0.22), rgba(192,132,252,0.18));
+            background-size: cover, 80px 80px, auto;
+            background-position: center, 30% 30%, center;
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            animation: pulseRing 3.6s ease-in-out infinite;
+        }
+
+        .photo-frame.circle::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: inset 0 10px 30px rgba(255,255,255,0.03);
+        }
+
+        .photo-frame.circle .photo-glass {
+            position: absolute;
+            inset: 0;
+            mix-blend-mode: overlay;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+        }
+
+        @keyframes pulseRing {
+            0% { box-shadow: 0 8px 22px rgba(255,107,157,0.06), 0 0 18px rgba(255,107,157,0.04); }
+            50% { box-shadow: 0 18px 46px rgba(255,107,157,0.12), 0 0 34px rgba(255,107,157,0.09); }
+            100% { box-shadow: 0 8px 22px rgba(255,107,157,0.06), 0 0 18px rgba(255,107,157,0.04); }
+        }
+        </style>
+</head>
+<body>
+    <!-- Background Video Section -->
+    <div class="video-container">
+        <video autoplay muted loop playsinline>
+            <source src="https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- Floating Hearts Background -->
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <!-- Intro (tap-to-begin for cinematic transition + music) -->
+    <section class="intro-section" id="introSection" aria-label="Intro">
+        <div class="intro-overlay"></div>
+        <div class="intro-content">
+            <div class="intro-topline">A love measured in time zones</div>
+            <h1 class="intro-title">One Heart, Two Skies</h1>
+            <p class="intro-subtitle">No matter the distance, I kept choosing you—every day.</p>
+            <button class="intro-btn" id="beginBtn">
+                <span>Tap to Begin</span>
+                <span class="intro-btn-shine" aria-hidden="true"></span>
+            </button>
+            <div class="intro-hint">This unlocks the music and starts the story.</div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Proposal Stage -->
+        <section class="proposal-stage" id="proposalStage" aria-label="Proposal">
+            <div class="glow-circle"></div>
+
+            <div class="love-bridge" aria-hidden="true">
+                <div class="photo-frame left circle" style="--img:url('left.jpg')">
+                    <div class="photo-glass"></div>
+                </div>
+
+                <div class="ekg-bridge">
+                    <svg class="ekg" viewBox="0 0 1200 140" preserveAspectRatio="none">
+                        <path class="ekg-back" d="M0,70 L260,70 L310,70 L340,25 L380,120 L420,70 L520,70 L560,70 L600,40 L640,105 L680,70 L900,70 L1200,70"/>
+                        <path class="ekg-front" d="M0,70 L260,70 L310,70 L340,25 L380,120 L420,70 L520,70 L560,70 L600,40 L640,105 L680,70 L900,70 L1200,70"/>
+                    </svg>
+                    <div class="ekg-heart">❤</div>
+                </div>
+
+                <div class="photo-frame right circle" style="--img:url('right.jpg')">
+                    <div class="photo-glass"></div>
+                </div>
+            </div>
+
+            <div class="proposal-wrapper">
+            <div class="proposal-heart-card" id="proposalCard">
+                <div class="proposal-card-content">
+                    <div class="heart-icon">💕</div>
+                    <h2 class="main-title">My Dearest Love</h2>
+                    <p class="subtitle">সমুদ্র আর সীমান্ত পার করে, আমার হৃদয় তোমার মধ্যে তার ঠিকানা পেলো</p>
+                    <div class="message-text">
+                        <p>যখন সিগনাল কমে যায়, আমার অনুভূতিগুলো কমে না.</p>
+                        <p>রাত যত দীর্ঘ হয়, তুমি আমার শান্তি।</p>
+                        <p>আর যখন আমরা অবশেষে দেখা করব, আমি চাই যেন মনে হয় আমরা কখনোই বিদায় যাইনি।</p>
+                        <p class="question">তুমি কি সারাজীবন আমার সাথে এই যাত্রা করবে?</p>
+                    </div>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <button class="btn btn-yes" id="yesBtn">
+                    <span>YES</span>
+                    <div class="btn-glow"></div>
+                </button>
+                <button class="btn btn-no" id="noBtn">
+                    <span>NO</span>
+                </button>
+            </div>
+            </div>
+        </section>
+
+        <!-- Success Message Section (Hidden initially) -->
+        <section class="success-section" id="successSection" aria-label="Success">
+            <div class="success-card">
+                <div class="success-content">
+                    <div class="success-heart">💖</div>
+                    <h2>YES! You Said YES!</h2>
+                    <p>আমাদের প্রেমের গল্প এখন শুরু হচ্ছে...</p>
+                    <p class="romantic-text">লাহোর থেকে ঢাকা পর্যন্ত, আমাদের হৃদয় একসাথে ধুকছে।</p>
+                    <p class="romantic-text">সাথে, চিরকাল, সবসময়।</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Music Toggle -->
+    <button class="music-toggle" id="musicToggle">
+        <span class="music-icon">🎵</span>
+    </button>
+    <audio id="backgroundMusic" loop>
+        <source src="Sugarbee - Chris Haugen BackGround Music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Popup Messages -->
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <span class="popup-close" id="popupClose">&times;</span>
+            <p id="popupText"></p>
+        </div>
+    </div>
+
+    <!-- Fireworks Container -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script src="script.js"></script>
+    <script>
+    (function(){
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.friction = 0.95;
+                this.gravity = 0.15;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.015;
+            }
+        }
+
+        function createFireworks(x, y) {
+            const colors = ['#ff0044', '#00ffcc', '#ffff33', '#9933ff', '#ff9900'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Remove global click fireworks; instead trigger sequence on YES click.
+        function launchFireworksSequence(duration = 3500, gap = 220) {
+            const end = Date.now() + duration;
+            const interval = setInterval(() => {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height * 0.6) + canvas.height * 0.1;
+                createFireworks(x, y);
+                if (Date.now() > end) clearInterval(interval);
+            }, gap);
+            // Extra center burst
+            createFireworks(canvas.width / 2, canvas.height / 3);
+        }
+
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const proposalStage = document.getElementById('proposalStage');
+        const successSection = document.getElementById('successSection');
+
+        if (yesBtn) {
+            yesBtn.addEventListener('click', (e) => {
+                // Play music if available
+                const music = document.getElementById('backgroundMusic');
+                if (music && music.paused) {
+                    music.play().catch(()=>{});
+                }
+
+                // Disable buttons to avoid double clicks
+                yesBtn.disabled = true;
+                if (noBtn) noBtn.disabled = true;
+
+                // Reveal success overlay without hiding the proposal stage so
+                // photos and heartbeat animation continue running underneath.
+                if (successSection) {
+                    successSection.classList.add('show');
+                    successSection.style.zIndex = 10001;
+                }
+
+                // Launch fireworks sequence across the screen
+                launchFireworksSequence(4200, 200);
+
+                // Burst at the YES button location for emphasis
+                const rect = yesBtn.getBoundingClientRect();
+                createFireworks(rect.left + rect.width/2, rect.top + rect.height/2);
+            });
+        }
+
+        function animate() {
+            // Clear the canvas each frame instead of layering black rectangles.
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Use additive blending so colors pop without darkening the page.
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                if (p.alpha <= 0) particles.splice(i, 1);
+                else { p.update(); p.draw(); }
+            }
+
+            // Restore default composite mode.
+            ctx.globalCompositeOperation = 'source-over';
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    })();
+    </script>
+</body>
+</html>
